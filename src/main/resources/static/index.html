@@ -49,7 +49,7 @@
 
     /* ── LOGIN ──────────────────────────────────────────── */
     #login-page {
-      display: flex;
+      display: none;
       min-height: 100vh;
       background: var(--white);
     }
@@ -1072,7 +1072,11 @@ function enterApp() {
 }
 
 window.addEventListener('load', () => {
-  if (localStorage.getItem('token')) enterApp();
+  if (localStorage.getItem('token')) {
+    enterApp();
+  } else {
+    document.getElementById('login-page').style.display = 'flex';
+  }
 });
 
 // ================================================================
