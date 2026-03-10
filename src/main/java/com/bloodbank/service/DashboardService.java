@@ -21,7 +21,6 @@ public class DashboardService {
     public DashboardResponse getStats() {
         long totalDonors    = donorRepository.count();
         long totalDonations = donationRepository.count();
-        // FIX: Use a single aggregate query instead of findAll().stream().mapToLong()
         long totalUsed      = usageRepository.sumTotalQuantity();
 
         return new DashboardResponse(

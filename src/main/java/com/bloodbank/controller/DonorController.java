@@ -20,11 +20,6 @@ public class DonorController {
     private final DonorService donorService;
     private final BloodDonationService donationService;
 
-    /**
-     * GET /api/donors?search=&page=0&size=20
-     * Returns a Spring Page (JSON: { content: [...], totalElements, totalPages, ... })
-     * The frontend handles both Page<Donor> (.content) and plain List<Donor>.
-     */
     @GetMapping
     public ResponseEntity<?> getAll(
             @RequestParam(required = false) String search,

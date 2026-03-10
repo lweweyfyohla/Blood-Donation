@@ -45,7 +45,6 @@ public class BloodUsageService {
         return usageRepository.findAllOrderByUsedDateDesc();
     }
 
-    /** Returns inventory (donated - used) for ALL blood types */
     public List<InventoryResponse> getInventory() {
         Map<Donor.BloodType, Long> donated = new EnumMap<>(Donor.BloodType.class);
         Map<Donor.BloodType, Long> used    = new EnumMap<>(Donor.BloodType.class);

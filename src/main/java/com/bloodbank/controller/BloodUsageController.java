@@ -26,7 +26,7 @@ public class BloodUsageController {
         return ResponseEntity.status(HttpStatus.CREATED).body(usageService.create(req));
     }
 
-    // ── Inventory ─────────────────────────────────────────────────
+    // Inventory
 
     @GetMapping("/inventory")
     public ResponseEntity<?> getInventory() {

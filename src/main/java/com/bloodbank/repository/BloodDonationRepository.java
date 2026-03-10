@@ -11,9 +11,6 @@ public interface BloodDonationRepository extends JpaRepository<BloodDonation, Lo
 
     List<BloodDonation> findByDonorId(Long donorId);
 
-    /**
-     * Fetch all donations with donor eagerly loaded in one query (avoids N+1).
-     */
     @Query("SELECT d FROM BloodDonation d JOIN FETCH d.donor ORDER BY d.donationDate DESC, d.id DESC")
     List<BloodDonation> findAllWithDonor();
 

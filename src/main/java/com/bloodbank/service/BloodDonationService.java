@@ -25,7 +25,6 @@ public class BloodDonationService {
         Donor donor = donorRepository.findById(req.getDonorId())
                 .orElseThrow(() -> new ResourceNotFoundException("Donor not found: " + req.getDonorId()));
 
-        // FIX: Use donor's actual blood type if not specified, or validate it matches
         Donor.BloodType bloodType = req.getBloodType() != null
                 ? req.getBloodType()
                 : donor.getBloodType();

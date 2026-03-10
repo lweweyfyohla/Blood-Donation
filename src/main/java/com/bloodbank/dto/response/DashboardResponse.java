@@ -10,6 +10,6 @@ import java.util.List;
 public class DashboardResponse {
     private long totalDonors;
     private long totalDonations;
-    private long totalBloodUsed;       // total units used across all types
+    private long totalBloodUsed;
     private List<InventoryResponse> inventory;
 }
