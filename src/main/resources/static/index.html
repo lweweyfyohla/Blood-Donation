@@ -983,8 +983,12 @@ async function api(method, path, body = null) {
     },
     ...(body ? { body: JSON.stringify(body) } : {}),
   });
-  if (res.status === 401) { doLogout(); return null; }
   const data = await res.json().catch(() => null);
+  if (res.status === 401) {
+    // Only auto-logout if user was already logged in; otherwise throw for login form to catch
+    if (localStorage.getItem('token')) { doLogout(); return null; }
+    throw new Error(data?.message || 'Invalid email or password.');
+  }
   if (!res.ok) throw new Error(data?.message || `Error ${res.status}`);
   return data;
 }

@@ -41,10 +41,5 @@ CREATE TABLE IF NOT EXISTS blood_usages (
     created_at TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- ============================================================
--- Default admin user  (password: admin123)
--- BCrypt hash of "admin123"
--- ============================================================
-INSERT IGNORE INTO users (name, email, password, role)
-VALUES ('Admin', 'admin@bloodbank.com',
-        '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'ADMIN');
+-- Default admin user is created by DataInitializer at application startup
+-- with a properly encoded BCrypt password.

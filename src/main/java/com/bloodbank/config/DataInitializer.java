@@ -23,7 +23,8 @@ public class DataInitializer implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        if (!userRepository.existsByEmail("admin@bloodbank.com")) {
+        var existing = userRepository.findByEmail("admin@bloodbank.com");
+        if (existing.isEmpty()) {
             User admin = User.builder()
                     .name("Admin")
                     .email("admin@bloodbank.com")
@@ -32,6 +33,14 @@ public class DataInitializer implements ApplicationRunner {
                     .build();
             userRepository.save(admin);
             log.info("Default admin user created: admin@bloodbank.com / admin123");
+        } else {
+            // Ensure the password is valid (fix for bad hash from old schema.sql)
+            User admin = existing.get();
+            if (!passwordEncoder.matches("admin123", admin.getPassword())) {
+                admin.setPassword(passwordEncoder.encode("admin123"));
+                userRepository.save(admin);
+                log.info("Admin password was reset to default: admin123");
+            }
         }
     }
 }
