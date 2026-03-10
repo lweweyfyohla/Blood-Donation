@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blood Donation System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ── TOKENS ─────────────────────────────────────────── */
+    :root {
+      --crimson:    #b91c1c;
+      --crimson-dk: #991b1b;
+      --crimson-lt: #fff1f1;
+      --crimson-bd: #fecaca;
+
+      --ink:        #111827;
+      --ink-2:      #374151;
+      --ink-3:      #6b7280;
+      --ink-4:      #9ca3af;
+
+      --line:       #e5e7eb;
+      --surface:    #f9fafb;
+      --white:      #ffffff;
+
+      --ok:         #15803d;
+      --ok-lt:      #f0fdf4;
+      --warn:       #b45309;
+      --warn-lt:    #fffbeb;
+
+      --r: 10px;
+      --sh: 0 1px 3px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.05);
+      --sh-lg: 0 8px 32px rgba(0,0,0,.12);
+      --sidebar: 268px;
+    }
+
+    /* ── RESET ──────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-font-smoothing: antialiased; }
+    body {
+      font-family: 'Geist', sans-serif;
+      font-size: 15.5px;
+      color: var(--ink-2);
+      background: var(--surface);
+      line-height: 1.55;
+    }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+    input, select, textarea { font-family: inherit; font-size: 15px; }
+
+    /* ── LOGIN ──────────────────────────────────────────── */
+    #login-page {
+      display: flex;
+      min-height: 100vh;
+      background: var(--white);
+    }
+
+    /* Left decorative panel */
+    .login-panel {
+      width: 420px;
+      flex-shrink: 0;
+      background: var(--ink);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 48px 44px;
+      position: relative;
+      overflow: hidden;
+    }
+    .login-panel::before {
+      content: '';
+      position: absolute;
+      top: -80px; right: -80px;
+      width: 340px; height: 340px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(185,28,28,.5) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .login-panel::after {
+      content: '';
+      position: absolute;
+      bottom: -60px; left: -60px;
+      width: 260px; height: 260px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(185,28,28,.3) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .lp-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: relative;
+      z-index: 1;
+    }
+    .lp-drop {
+      width: 36px; height: 36px;
+      background: var(--crimson);
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg);
+      flex-shrink: 0;
+    }
+    .lp-brand {
+      font-family: 'Instrument Serif', serif;
+      font-size: 19px;
+      color: var(--white);
+      line-height: 1.2;
+    }
+    .lp-brand span { display: block; font-size: 11px; font-family: 'Geist', sans-serif; font-weight: 400; color: rgba(255,255,255,.45); letter-spacing: .06em; text-transform: uppercase; margin-top: 2px; }
+    .lp-headline {
+      position: relative;
+      z-index: 1;
+    }
+    .lp-headline h2 {
+      font-family: 'Instrument Serif', serif;
+      font-size: 38px;
+      color: var(--white);
+      line-height: 1.15;
+      margin-bottom: 14px;
+    }
+    .lp-headline h2 em { color: var(--crimson); font-style: normal; }
+    .lp-headline p { font-size: 13px; color: rgba(255,255,255,.5); line-height: 1.7; max-width: 260px; }
+    .lp-stats {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      gap: 24px;
+    }
+    .lp-stat-val { font-family: 'Geist Mono', monospace; font-size: 22px; font-weight: 500; color: var(--white); }
+    .lp-stat-lbl { font-size: 11px; color: rgba(255,255,255,.4); margin-top: 2px; }
+
+    /* Right form panel */
+    .login-form-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+    }
+    .login-form-inner {
+      width: 100%;
+      max-width: 360px;
+    }
+    .lf-title {
+      font-family: 'Instrument Serif', serif;
+      font-size: 28px;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+    .lf-sub { font-size: 13px; color: var(--ink-3); margin-bottom: 32px; }
+
+    @media (max-width: 700px) {
+      .login-panel { display: none; }
+    }
+
+    /* ── FORM COMPONENTS (shared) ───────────────────────── */
+    .fg { margin-bottom: 18px; }
+    .fg label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink-2);
+      letter-spacing: .03em;
+      margin-bottom: 7px;
+      text-transform: uppercase;
+    }
+    .fg input,
+    .fg select,
+    .fg textarea {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid var(--line);
+      border-radius: var(--r);
+      color: var(--ink);
+      background: var(--white);
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .fg input:focus,
+    .fg select:focus,
+    .fg textarea:focus {
+      border-color: var(--crimson);
+      box-shadow: 0 0 0 3px rgba(185,28,28,.08);
+    }
+    .fg-hint { font-size: 13px; color: var(--ink-4); margin-top: 5px; }
+    .req { color: var(--crimson); margin-left: 2px; }
+    .opt { color: var(--ink-4); font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 12px; margin-left: 3px; }
+
+    /* ── BUTTONS ────────────────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 11px 22px;
+      border-radius: var(--r);
+      font-size: 14.5px;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: background .15s, box-shadow .15s, opacity .15s;
+    }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    .btn-primary { background: var(--crimson); color: var(--white); }
+    .btn-primary:hover:not(:disabled) { background: var(--crimson-dk); box-shadow: 0 2px 8px rgba(185,28,28,.3); }
+    .btn-ghost { background: transparent; color: var(--ink-2); border: 1.5px solid var(--line); }
+    .btn-ghost:hover:not(:disabled) { background: var(--surface); }
+    .btn-danger-soft { background: #fef2f2; color: var(--crimson); border: 1px solid var(--crimson-bd); }
+    .btn-danger-soft:hover { background: var(--crimson-bd); }
+    .btn-sm { padding: 7px 14px; font-size: 13px; }
+    .btn-full { width: 100%; justify-content: center; }
+
+    /* ── ALERTS ─────────────────────────────────────────── */
+    .alert {
+      padding: 10px 14px;
+      border-radius: var(--r);
+      font-size: 13px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .alert-err  { background: var(--crimson-lt); color: var(--crimson); border: 1px solid var(--crimson-bd); }
+    .alert-ok   { background: var(--ok-lt); color: var(--ok); border: 1px solid #bbf7d0; }
+    .alert-info { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .alert-warn { background: var(--warn-lt); color: var(--warn); border: 1px solid #fde68a; }
+
+    /* ── APP SHELL ──────────────────────────────────────── */
+    #app { display: none; height: 100vh; overflow: hidden; }
+    .shell { display: flex; height: 100vh; }
+
+    /* ── SIDEBAR ────────────────────────────────────────── */
+    .sidebar {
+      width: var(--sidebar);
+      background: var(--ink);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    .sb-head {
+      padding: 26px 20px 22px;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .sb-drop {
+      width: 34px; height: 34px;
+      background: var(--crimson);
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg);
+      flex-shrink: 0;
+    }
+    .sb-brand { font-family: 'Instrument Serif', serif; font-size: 17px; color: var(--white); line-height: 1.2; }
+    .sb-brand span { display: block; font-size: 11px; font-family: 'Geist', sans-serif; color: rgba(255,255,255,.35); letter-spacing: .06em; text-transform: uppercase; margin-top: 1px; }
+
+    .sb-nav { flex: 1; padding: 14px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .sb-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.25);
+      padding: 10px 12px 5px;
+      margin-top: 8px;
+    }
+    .sb-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 14px;
+      border-radius: 8px;
+      font-size: 14.5px;
+      font-weight: 500;
+      color: rgba(255,255,255,.5);
+      cursor: pointer;
+      transition: background .12s, color .12s;
+    }
+    .sb-item:hover { background: rgba(255,255,255,.07); color: rgba(255,255,255,.85); }
+    .sb-item.active { background: var(--crimson); color: var(--white); }
+    .sb-item svg { width: 17px; height: 17px; flex-shrink: 0; opacity: .8; }
+    .sb-item.active svg { opacity: 1; }
+
+    .sb-foot {
+      padding: 16px 12px;
+      border-top: 1px solid rgba(255,255,255,.07);
+    }
+    .sb-user {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      margin-bottom: 4px;
+    }
+    .sb-avatar {
+      width: 34px; height: 34px;
+      background: var(--crimson);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700; color: var(--white);
+      flex-shrink: 0;
+    }
+    .sb-uname { font-size: 14px; font-weight: 600; color: rgba(255,255,255,.8); }
+    .sb-urole { font-size: 12px; color: rgba(255,255,255,.3); }
+    .sb-logout {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      width: 100%;
+      border-radius: 8px;
+      font-size: 14px;
+      color: rgba(255,255,255,.35);
+      cursor: pointer;
+      transition: background .12s, color .12s;
+    }
+    .sb-logout:hover { background: rgba(255,255,255,.06); color: rgba(255,255,255,.7); }
+
+    /* ── MAIN ───────────────────────────────────────────── */
+    .main { flex: 1; overflow-y: auto; background: var(--surface); }
+    .page { display: none; padding: 44px 52px; max-width: 1200px; margin: 0 auto; width: 100%; }
+    .page.active { display: block; }
+
+    /* ── PAGE HEADER ────────────────────────────────────── */
+    .ph { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 32px; gap: 16px; flex-wrap: wrap; }
+    .ph-title {
+      font-family: 'Instrument Serif', serif;
+      font-size: 32px;
+      color: var(--ink);
+      line-height: 1.1;
+    }
+    .ph-sub { font-size: 14px; color: var(--ink-4); margin-top: 4px; }
+
+    /* ── STAT CARDS ─────────────────────────────────────── */
+    .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+    @media (max-width: 900px) { .stat-row { grid-template-columns: repeat(2, 1fr); } }
+    .stat-card {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      padding: 26px 24px;
+      box-shadow: var(--sh);
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::after {
+      content: attr(data-icon);
+      position: absolute;
+      right: 18px; bottom: 12px;
+      font-size: 44px;
+      opacity: .06;
+      pointer-events: none;
+    }
+    .s-lbl {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--ink-4);
+      margin-bottom: 12px;
+    }
+    .s-val {
+      font-family: 'Geist Mono', monospace;
+      font-size: 42px;
+      font-weight: 500;
+      color: var(--ink);
+      line-height: 1;
+    }
+
+    /* ── INVENTORY GRID ─────────────────────────────────── */
+    .inv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; }
+    .inv-card {
+      background: var(--white);
+      border: 1.5px solid var(--line);
+      border-radius: var(--r);
+      padding: 24px 18px;
+      text-align: center;
+      box-shadow: var(--sh);
+      transition: border-color .2s, transform .2s;
+    }
+    .inv-card:hover { transform: translateY(-2px); }
+    .inv-card.low  { border-color: #fcd34d; }
+    .inv-card.out  { border-color: var(--crimson-bd); }
+    .inv-type  { font-family: 'Geist Mono', monospace; font-size: 26px; font-weight: 500; color: var(--crimson); }
+    .inv-num   { font-family: 'Geist Mono', monospace; font-size: 48px; font-weight: 600; color: var(--ink); line-height: 1; margin: 8px 0 5px; }
+    .inv-lbl   { font-size: 13px; color: var(--ink-4); }
+    .inv-meta  { font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--ink-4); margin-top: 10px; }
+    .inv-badge {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .inv-badge.low { background: #fef3c7; color: var(--warn); }
+    .inv-badge.out { background: var(--crimson-lt); color: var(--crimson); }
+
+    /* ── BLOOD TYPE BADGE ───────────────────────────────── */
+    .btag {
+      display: inline-block;
+      padding: 3px 11px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      font-family: 'Geist Mono', monospace;
+      background: var(--crimson-lt);
+      color: var(--crimson);
+      border: 1px solid var(--crimson-bd);
+    }
+
+    /* ── CARD / TABLE ───────────────────────────────────── */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      box-shadow: var(--sh);
+      overflow: hidden;
+    }
+    .card-head {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .card-title { font-size: 15px; font-weight: 600; color: var(--ink); }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead { }
+    th {
+      padding: 12px 22px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-4);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      white-space: nowrap;
+    }
+    td {
+      padding: 15px 22px;
+      border-bottom: 1px solid var(--line);
+      font-size: 14.5px;
+      color: var(--ink-2);
+      vertical-align: middle;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: #fafafa; }
+    .t-empty { text-align: center; padding: 56px; color: var(--ink-4); font-size: 14px; }
+    .t-name { font-weight: 600; color: var(--ink); }
+
+    /* ── SEARCH ─────────────────────────────────────────── */
+    .search {
+      position: relative;
+    }
+    .search input {
+      padding: 9px 14px 9px 36px;
+      border: 1.5px solid var(--line);
+      border-radius: var(--r);
+      font-size: 14px;
+      color: var(--ink);
+      background: var(--white);
+      outline: none;
+      width: 260px;
+      transition: border-color .15s;
+    }
+    .search input:focus { border-color: var(--crimson); }
+    .search-ico {
+      position: absolute;
+      left: 11px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--ink-4);
+      pointer-events: none;
+    }
+
+    /* ── MODAL ──────────────────────────────────────────── */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(17,24,39,.45);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      backdrop-filter: blur(2px);
+    }
+    .overlay.open { display: flex; }
+    .modal {
+      background: var(--white);
+      border-radius: 14px;
+      padding: 34px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: var(--sh-lg);
+      position: relative;
+      animation: slideUp .18s ease;
+    }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .modal-ttl {
+      font-family: 'Instrument Serif', serif;
+      font-size: 24px;
+      color: var(--ink);
+      margin-bottom: 24px;
+      padding-right: 36px;
+    }
+    .modal-x {
+      position: absolute;
+      top: 24px; right: 24px;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      color: var(--ink-4);
+      cursor: pointer;
+      transition: background .12s;
+    }
+    .modal-x:hover { background: var(--surface); color: var(--ink); }
+    .modal-foot { display: flex; gap: 12px; margin-top: 26px; }
+    .modal-foot .btn { flex: 1; justify-content: center; }
+
+    /* ── ACTIONS ────────────────────────────────────────── */
+    .acts { display: flex; gap: 6px; }
+
+    /* ── DIVIDER ────────────────────────────────────────── */
+    .divider { border: none; border-top: 1px solid var(--line); margin: 20px 0; }
+
+    /* ── SPINNER ────────────────────────────────────────── */
+    .spin {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,.35);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: rot .65s linear infinite;
+    }
+    @keyframes rot { to { transform: rotate(360deg); } }
+
+    /* ── RESPONSIVE ─────────────────────────────────────── */
+    @media (max-width: 680px) {
+      .sidebar { width: 52px; }
+      .sb-brand, .sb-label, .sb-item span, .sb-head div, .sb-uname, .sb-urole { display: none; }
+      .sb-head { justify-content: center; }
+      .sb-item { justify-content: center; padding: 10px; }
+      .page { padding: 16px; }
+      .stat-row { grid-template-columns: repeat(2,1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     LOGIN PAGE
+     ═══════════════════════════════════════════ -->
+<div id="login-page">
+
+  <!-- Decorative left panel -->
+  <div class="login-panel">
+    <div class="lp-logo">
+      <div class="lp-drop"></div>
+      <div class="lp-brand">
+        Blood Donation
+        <span>Management System</span>
+      </div>
+    </div>
+    <div class="lp-headline">
+      <h2>Every drop<br><em>saves a life.</em></h2>
+      <p>Track donors, manage inventory, and record blood usage — all in one place.</p>
+    </div>
+    <div class="lp-stats">
+      <div>
+        <div class="lp-stat-val">8</div>
+        <div class="lp-stat-lbl">Blood types tracked</div>
+      </div>
+      <div>
+        <div class="lp-stat-val">∞</div>
+        <div class="lp-stat-lbl">Donors supported</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Login form -->
+  <div class="login-form-wrap">
+    <div class="login-form-inner">
+      <div class="lf-title">Sign in</div>
+      <div class="lf-sub">Enter your credentials to access the system</div>
+
+      <div id="login-err" class="alert alert-err" style="display:none"></div>
+
+      <div class="fg">
+        <label>Email</label>
+        <input type="email" id="l-email" placeholder="doctor@hospital.com" />
+      </div>
+      <div class="fg">
+        <label>Password</label>
+        <input type="password" id="l-pass" placeholder="••••••••" />
+      </div>
+
+      <button class="btn btn-primary btn-full" id="login-btn" onclick="doLogin()" style="margin-top:6px">
+        Sign In
+      </button>
+
+      <p id="demo-note" style="text-align:center;font-size:12px;color:var(--ink-4);margin-top:18px;">
+        Demo mode — any credentials accepted
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     MAIN APP
+     ═══════════════════════════════════════════ -->
+<div id="app">
+<div class="shell">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="sb-head">
+      <div class="sb-drop"></div>
+      <div class="sb-brand">Blood Donation<span>System</span></div>
+    </div>
+
+    <nav class="sb-nav" id="sb-nav">
+      <div class="sb-label">Overview</div>
+      <div class="sb-item active" data-page="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <span>Dashboard</span>
+      </div>
+      <div class="sb-label">Records</div>
+      <div class="sb-item" data-page="donors">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Donors</span>
+      </div>
+      <div class="sb-item" data-page="donations">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22C6.5 22 2 17.5 2 12S6.5 2 12 2s10 4.5 10 10-4.5 10-10 10z"/><path d="M12 8v4l3 3"/></svg>
+        <span>Donations</span>
+      </div>
+      <div class="sb-item" data-page="inventory">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        <span>Inventory</span>
+      </div>
+      <div class="sb-item" data-page="usage">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <span>Blood Usage</span>
+      </div>
+    </nav>
+
+    <div class="sb-foot">
+      <div class="sb-user">
+        <div class="sb-avatar" id="sb-avatar">U</div>
+        <div>
+          <div class="sb-uname" id="sb-uname">User</div>
+          <div class="sb-urole" id="sb-urole">Staff</div>
+        </div>
+      </div>
+      <button class="sb-logout" onclick="doLogout()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Log out</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── MAIN CONTENT ── -->
+  <main class="main">
+
+    <!-- ════ DASHBOARD ════ -->
+    <div id="page-dashboard" class="page active">
+      <div class="ph">
+        <div>
+          <div class="ph-title">Dashboard</div>
+          <div class="ph-sub">Blood Donation System — live overview</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="loadDashboard()">↻ Refresh</button>
+      </div>
+
+      <!-- Stat cards -->
+      <div class="stat-row">
+        <div class="stat-card" data-icon="👤">
+          <div class="s-lbl">Total Donors</div>
+          <div class="s-val" id="s-donors">—</div>
+        </div>
+        <div class="stat-card" data-icon="🩸">
+          <div class="s-lbl">Total Donations</div>
+          <div class="s-val" id="s-donations">—</div>
+        </div>
+        <div class="stat-card" data-icon="💉">
+          <div class="s-lbl">Blood Used (units)</div>
+          <div class="s-val" id="s-used">—</div>
+        </div>
+        <div class="stat-card" data-icon="📦">
+          <div class="s-lbl">Types In Stock</div>
+          <div class="s-val" id="s-types">—</div>
+        </div>
+      </div>
+
+      <!-- Inventory grid -->
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">Blood Inventory — Current Stock</span>
+          <span style="font-size:11.5px;color:var(--ink-4)">Donated − Used = Available</span>
+        </div>
+        <div style="padding:20px">
+          <div class="inv-grid" id="dash-inv">
+            <div class="t-empty">Loading…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ DONORS ════ -->
+    <!--
+      BUSINESS LOGIC — Donors:
+      A donor is any person registered to give blood.
+      They must be added here before you can log a donation for them.
+      Each donor has a fixed blood type stored on their profile.
+    -->
+    <div id="page-donors" class="page">
+      <div class="ph">
+        <div>
+          <div class="ph-title">Donors</div>
+          <div class="ph-sub">Registered blood donors</div>
+        </div>
+        <button class="btn btn-primary" onclick="openDonorModal()">+ Add Donor</button>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">All Donors</span>
+          <div class="search">
+            <span class="search-ico">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </span>
+            <input type="text" id="donor-search" placeholder="Search name, phone…" oninput="filterDonors()" />
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Name</th><th>Blood Type</th><th>Phone</th><th>Email</th><th>Registered</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="donors-tbody">
+            <tr><td colspan="6" class="t-empty">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ════ DONATIONS ════ -->
+    <!--
+      BUSINESS LOGIC — Donations:
+      A donation = a donor gives blood on a specific date.
+      Each record adds units to the inventory automatically.
+      Blood type is auto-filled from the selected donor.
+    -->
+    <div id="page-donations" class="page">
+      <div class="ph">
+        <div>
+          <div class="ph-title">Donations</div>
+          <div class="ph-sub">Each record adds units to inventory</div>
+        </div>
+        <button class="btn btn-primary" onclick="openDonationModal()">+ Log Donation</button>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><span class="card-title">Donation Records</span></div>
+        <table>
+          <thead>
+            <tr><th>Donor</th><th>Blood Type</th><th>Units</th><th>Date</th></tr>
+          </thead>
+          <tbody id="donations-tbody">
+            <tr><td colspan="4" class="t-empty">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ════ INVENTORY ════ -->
+    <!--
+      BUSINESS LOGIC — Inventory:
+      Inventory = Total Donated − Total Used, per blood type.
+      Calculated in real time. Low stock ≤ 5 units. Out = 0 units.
+    -->
+    <div id="page-inventory" class="page">
+      <div class="ph">
+        <div>
+          <div class="ph-title">Blood Inventory</div>
+          <div class="ph-sub">Real-time stock levels per blood type</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="loadInventory()">↻ Refresh</button>
+      </div>
+
+      <div class="alert alert-info" style="margin-bottom:20px">
+        💡 Every <strong>donation adds</strong> units. Every <strong>blood usage subtracts</strong> units. The available count updates automatically.
+      </div>
+
+      <div class="inv-grid" id="inv-grid">
+        <div class="t-empty">Loading…</div>
+      </div>
+    </div>
+
+    <!-- ════ BLOOD USAGE ════ -->
+    <!--
+      BUSINESS LOGIC — Blood Usage:
+      Recorded when blood from the bank is given to a patient.
+      Submitting DEDUCTS from inventory. Cannot exceed available stock.
+    -->
+    <div id="page-usage" class="page">
+      <div class="ph">
+        <div>
+          <div class="ph-title">Blood Usage</div>
+          <div class="ph-sub">Records blood given to patients — deducts from inventory</div>
+        </div>
+        <button class="btn btn-primary" onclick="openUsageModal()">+ Record Usage</button>
+      </div>
+
+      <div id="usage-ok" class="alert alert-ok" style="display:none"></div>
+
+      <div class="card">
+        <div class="card-head"><span class="card-title">Usage History</span></div>
+        <table>
+          <thead>
+            <tr><th>Blood Type</th><th>Units</th><th>Date</th><th>Note</th></tr>
+          </thead>
+          <tbody id="usage-tbody">
+            <tr><td colspan="4" class="t-empty">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     MODALS
+     ═══════════════════════════════════════════ -->
+
+<!-- Add / Edit Donor -->
+<div class="overlay" id="m-donor">
+  <div class="modal">
+    <button class="modal-x" onclick="closeDonorModal()">✕</button>
+    <div class="modal-ttl" id="m-donor-title">Add Donor</div>
+    <div id="m-donor-err" class="alert alert-err" style="display:none"></div>
+    <div class="fg"><label>Full Name <span class="req">*</span></label><input type="text" id="d-name" placeholder="Maria Santos" /></div>
+    <div class="fg"><label>Blood Type <span class="req">*</span></label>
+      <select id="d-blood">
+        <option value="A_POS">A+</option><option value="A_NEG">A−</option>
+        <option value="B_POS">B+</option><option value="B_NEG">B−</option>
+        <option value="AB_POS">AB+</option><option value="AB_NEG">AB−</option>
+        <option value="O_POS">O+</option><option value="O_NEG">O−</option>
+      </select>
+    </div>
+    <div class="fg"><label>Phone <span class="req">*</span></label><input type="tel" id="d-phone" placeholder="09171234567" /></div>
+    <div class="fg"><label>Email <span class="opt">(optional)</span></label><input type="email" id="d-email" placeholder="maria@email.com" /></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeDonorModal()">Cancel</button>
+      <button class="btn btn-primary" id="d-save" onclick="saveDonor()">Save Donor</button>
+    </div>
+  </div>
+</div>
+
+<!-- Log Donation -->
+<div class="overlay" id="m-donation">
+  <div class="modal">
+    <button class="modal-x" onclick="closeDonationModal()">✕</button>
+    <div class="modal-ttl">Log Donation</div>
+    <div class="alert alert-info">🩸 This will <strong>add units</strong> to the blood inventory.</div>
+    <div id="m-donation-err" class="alert alert-err" style="display:none"></div>
+    <div class="fg"><label>Donor <span class="req">*</span></label>
+      <select id="dn-donor" onchange="autofillBlood()">
+        <option value="">— Select a donor —</option>
+      </select>
+      <div class="fg-hint">Donor must be registered first (Donors page).</div>
+    </div>
+    <div class="fg"><label>Blood Type <span class="req">*</span></label>
+      <select id="dn-blood">
+        <option value="A_POS">A+</option><option value="A_NEG">A−</option>
+        <option value="B_POS">B+</option><option value="B_NEG">B−</option>
+        <option value="AB_POS">AB+</option><option value="AB_NEG">AB−</option>
+        <option value="O_POS">O+</option><option value="O_NEG">O−</option>
+      </select>
+      <div class="fg-hint">Auto-filled from donor's blood type.</div>
+    </div>
+    <div class="fg"><label>Units <span class="req">*</span></label><input type="number" id="dn-qty" value="1" min="1" max="10" /><div class="fg-hint">1 unit ≈ 450 ml</div></div>
+    <div class="fg"><label>Donation Date <span class="req">*</span></label><input type="date" id="dn-date" /></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeDonationModal()">Cancel</button>
+      <button class="btn btn-primary" id="dn-save" onclick="saveDonation()">Log Donation</button>
+    </div>
+  </div>
+</div>
+
+<!-- Record Blood Usage -->
+<div class="overlay" id="m-usage">
+  <div class="modal">
+    <button class="modal-x" onclick="closeUsageModal()">✕</button>
+    <div class="modal-ttl">Record Blood Usage</div>
+    <div class="alert alert-warn">💉 This will <strong>subtract units</strong> from inventory.</div>
+    <div id="m-usage-err" class="alert alert-err" style="display:none"></div>
+    <div class="fg"><label>Blood Type <span class="req">*</span></label>
+      <select id="u-blood" onchange="showStock()">
+        <option value="A_POS">A+</option><option value="A_NEG">A−</option>
+        <option value="B_POS">B+</option><option value="B_NEG">B−</option>
+        <option value="AB_POS">AB+</option><option value="AB_NEG">AB−</option>
+        <option value="O_POS">O+</option><option value="O_NEG">O−</option>
+      </select>
+      <div class="fg-hint" id="u-stock-hint">Checking stock…</div>
+    </div>
+    <div class="fg"><label>Units <span class="req">*</span></label><input type="number" id="u-qty" value="1" min="1" /></div>
+    <div class="fg"><label>Date Used <span class="req">*</span></label><input type="date" id="u-date" /></div>
+    <div class="fg"><label>Note <span class="opt">(optional)</span></label><textarea id="u-note" rows="2" placeholder="e.g. Emergency surgery, trauma patient…"></textarea></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeUsageModal()">Cancel</button>
+      <button class="btn btn-primary" id="u-save" onclick="saveUsage()">Record Usage</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ================================================================
+//  CONFIG
+//  Set DEMO_MODE = false and update BASE_URL when using real API.
+// ================================================================
+const BASE_URL   = '/api';
+const DEMO_MODE  = false;
+
+// ================================================================
+//  BLOOD TYPE LABEL MAP
+// ================================================================
+const BL = {
+  A_POS:'A+', A_NEG:'A−', B_POS:'B+', B_NEG:'B−',
+  AB_POS:'AB+', AB_NEG:'AB−', O_POS:'O+', O_NEG:'O−',
+};
+
+// ================================================================
+//  DEMO DATA (used when DEMO_MODE = true)
+// ================================================================
+const demo = {
+  donors: [
+    { id:1, name:'Maria Santos',   bloodType:'A_POS', phone:'09171234567', email:'maria@email.com',  createdAt:'2025-01-10' },
+    { id:2, name:'Juan Dela Cruz', bloodType:'O_POS', phone:'09281234567', email:'juan@email.com',   createdAt:'2025-02-15' },
+    { id:3, name:'Ana Reyes',      bloodType:'B_NEG', phone:'09391234567', email:'',                 createdAt:'2025-03-01' },
+    { id:4, name:'Carlos Mendoza', bloodType:'AB_POS',phone:'09501234567', email:'carlos@email.com', createdAt:'2025-03-05' },
+  ],
+  donations: [
+    { id:1, donor:{name:'Maria Santos'},   bloodType:'A_POS', quantity:2, donationDate:'2025-01-15' },
+    { id:2, donor:{name:'Juan Dela Cruz'}, bloodType:'O_POS', quantity:1, donationDate:'2025-02-20' },
+    { id:3, donor:{name:'Ana Reyes'},      bloodType:'B_NEG', quantity:1, donationDate:'2025-03-03' },
+    { id:4, donor:{name:'Carlos Mendoza'},bloodType:'AB_POS', quantity:3, donationDate:'2025-03-07' },
+  ],
+  usages: [
+    { id:1, bloodType:'A_POS', quantity:1, usedDate:'2025-01-20', note:'Emergency patient' },
+    { id:2, bloodType:'O_POS', quantity:1, usedDate:'2025-02-25', note:'Scheduled surgery'  },
+  ],
+  inventory: [
+    { bloodType:'A_POS', donated:2, used:1, available:1 },
+    { bloodType:'A_NEG', donated:0, used:0, available:0 },
+    { bloodType:'B_POS', donated:0, used:0, available:0 },
+    { bloodType:'B_NEG', donated:1, used:0, available:1 },
+    { bloodType:'AB_POS',donated:3, used:0, available:3 },
+    { bloodType:'AB_NEG',donated:0, used:0, available:0 },
+    { bloodType:'O_POS', donated:1, used:1, available:0 },
+    { bloodType:'O_NEG', donated:0, used:0, available:0 },
+  ],
+};
+
+// ================================================================
+//  IN-MEMORY STATE
+// ================================================================
+const S = { donors:[], donations:[], usages:[], inventory:[], editDonorId:null };
+
+// ================================================================
+//  API HELPER
+// ================================================================
+async function api(method, path, body = null) {
+  const token = localStorage.getItem('token');
+  const res = await fetch(BASE_URL + path, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  });
+  if (res.status === 401) { doLogout(); return null; }
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(data?.message || `Error ${res.status}`);
+  return data;
+}
+
+// Demo fetch wrappers
+async function getDonors()    { return DEMO_MODE ? [...demo.donors]    : (await api('GET','/donors')).content ?? await api('GET','/donors'); }
+async function getDonations() { return DEMO_MODE ? [...demo.donations]  : await api('GET','/donations'); }
+async function getUsages()    { return DEMO_MODE ? [...demo.usages]     : await api('GET','/usages'); }
+async function getInventory() { return DEMO_MODE ? [...demo.inventory]  : await api('GET','/usages/inventory'); }
+async function getDashboard() {
+  if (DEMO_MODE) return {
+    totalDonors:    demo.donors.length,
+    totalDonations: demo.donations.length,
+    totalBloodUsed: demo.usages.reduce((s,u) => s+u.quantity, 0),
+    inventory:      demo.inventory,
+  };
+  return await api('GET', '/dashboard');
+}
+
+// ================================================================
+//  LOGIN
+// ================================================================
+async function doLogin() {
+  const email = document.getElementById('l-email').value.trim();
+  const pass  = document.getElementById('l-pass').value;
+  const errEl = document.getElementById('login-err');
+  const btn   = document.getElementById('login-btn');
+
+  if (!email || !pass) { showErr(errEl, 'Enter your email and password.'); return; }
+  errEl.style.display = 'none';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Signing in…';
+
+  try {
+    if (DEMO_MODE) {
+      localStorage.setItem('token',    'demo');
+      localStorage.setItem('userName', email.split('@')[0]);
+      localStorage.setItem('userRole', 'Admin');
+    } else {
+      const r = await api('POST', '/auth/login', { email, password: pass });
+      localStorage.setItem('token',    r.token);
+      localStorage.setItem('userName', r.name);
+      localStorage.setItem('userRole', r.role);
+    }
+    enterApp();
+  } catch(e) {
+    showErr(errEl, e.message || 'Invalid credentials.');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'Sign In';
+  }
+}
+
+document.getElementById('l-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+// ================================================================
+//  LOGOUT
+// ================================================================
+function doLogout() {
+  localStorage.clear();
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-page').style.display = 'flex';
+  document.getElementById('l-pass').value = '';
+}
+
+// ================================================================
+//  ENTER APP
+// ================================================================
+function enterApp() {
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  const name = localStorage.getItem('userName') || 'User';
+  const role = localStorage.getItem('userRole') || '';
+  document.getElementById('sb-uname').textContent  = name;
+  document.getElementById('sb-urole').textContent  = role;
+  document.getElementById('sb-avatar').textContent = name[0].toUpperCase();
+  goTo('dashboard');
+}
+
+window.addEventListener('load', () => {
+  if (localStorage.getItem('token')) enterApp();
+});
+
+// ================================================================
+//  NAVIGATION
+// ================================================================
+function goTo(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.sb-item').forEach(i => i.classList.toggle('active', i.dataset.page === page));
+  if (page === 'dashboard')  loadDashboard();
+  if (page === 'donors')     loadDonors();
+  if (page === 'donations')  loadDonations();
+  if (page === 'inventory')  loadInventory();
+  if (page === 'usage')      loadUsages();
+}
+
+document.getElementById('sb-nav').addEventListener('click', e => {
+  const item = e.target.closest('.sb-item');
+  if (item?.dataset.page) goTo(item.dataset.page);
+});
+
+// ================================================================
+//  DASHBOARD
+// ================================================================
+async function loadDashboard() {
+  try {
+    const d = await getDashboard();
+    document.getElementById('s-donors').textContent    = d.totalDonors    ?? 0;
+    document.getElementById('s-donations').textContent = d.totalDonations ?? 0;
+    document.getElementById('s-used').textContent      = d.totalBloodUsed ?? 0;
+    document.getElementById('s-types').textContent     = (d.inventory||[]).filter(i=>i.available>0).length;
+    document.getElementById('dash-inv').innerHTML = (d.inventory||[]).map(invCard).join('');
+  } catch(e) { console.error(e); }
+}
+
+// ================================================================
+//  INVENTORY
+// ================================================================
+async function loadInventory() {
+  const g = document.getElementById('inv-grid');
+  g.innerHTML = '<div class="t-empty">Loading…</div>';
+  try {
+    S.inventory = await getInventory();
+    g.innerHTML = S.inventory.map(invCard).join('');
+  } catch(e) { g.innerHTML = `<div class="t-empty" style="color:var(--crimson)">Error: ${e.message}</div>`; }
+}
+
+function invCard(item) {
+  const lbl  = BL[item.bloodType] || item.bloodType;
+  const isLow = item.available > 0 && item.available <= 5;
+  const isOut = item.available === 0;
+  const cls   = isOut ? 'inv-card out' : isLow ? 'inv-card low' : 'inv-card';
+  const badge = isOut ? '<span class="inv-badge out">Out</span>'
+              : isLow ? '<span class="inv-badge low">Low</span>' : '';
+  return `
+    <div class="${cls}">
+      <div class="inv-type">${lbl}</div>
+      <div class="inv-num">${item.available}</div>
+      <div class="inv-lbl">units available</div>
+      <div class="inv-meta">↑${item.donated} donated &nbsp; ↓${item.used} used</div>
+      ${badge}
+    </div>`;
+}
+
+// ================================================================
+//  DONORS
+// ================================================================
+async function loadDonors() {
+  const tb = document.getElementById('donors-tbody');
+  tb.innerHTML = '<tr><td colspan="6" class="t-empty">Loading…</td></tr>';
+  try {
+    S.donors = await getDonors();
+    renderDonors(S.donors);
+  } catch(e) { tb.innerHTML = `<tr><td colspan="6" class="t-empty">Error: ${e.message}</td></tr>`; }
+}
+
+function renderDonors(list) {
+  const tb = document.getElementById('donors-tbody');
+  if (!list.length) {
+    tb.innerHTML = '<tr><td colspan="6" class="t-empty">No donors yet. Click "+ Add Donor" to register one.</td></tr>';
+    return;
+  }
+  tb.innerHTML = list.map(d => `
+    <tr>
+      <td class="t-name">${d.name}</td>
+      <td><span class="btag">${BL[d.bloodType]||d.bloodType}</span></td>
+      <td>${d.phone}</td>
+      <td style="color:var(--ink-4)">${d.email||'—'}</td>
+      <td style="font-size:12px;color:var(--ink-4)">${(d.createdAt||'').slice(0,10)||'—'}</td>
+      <td>
+        <div class="acts">
+          <button class="btn btn-ghost btn-sm" onclick="openDonorModal(${d.id})">Edit</button>
+          <button class="btn btn-danger-soft btn-sm" onclick="deleteDonor(${d.id},'${d.name.replace(/'/g,"\\'")}')">Delete</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function filterDonors() {
+  const q = document.getElementById('donor-search').value.toLowerCase();
+  renderDonors(S.donors.filter(d =>
+    d.name.toLowerCase().includes(q) ||
+    d.phone.includes(q) ||
+    (d.email||'').toLowerCase().includes(q)
+  ));
+}
+
+function openDonorModal(id = null) {
+  document.getElementById('d-name').value  = '';
+  document.getElementById('d-blood').value = 'A_POS';
+  document.getElementById('d-phone').value = '';
+  document.getElementById('d-email').value = '';
+  document.getElementById('m-donor-err').style.display = 'none';
+  S.editDonorId = id;
+
+  if (id) {
+    const d = S.donors.find(x => x.id === id);
+    if (d) {
+      document.getElementById('d-name').value  = d.name;
+      document.getElementById('d-blood').value = d.bloodType;
+      document.getElementById('d-phone').value = d.phone;
+      document.getElementById('d-email').value = d.email || '';
+    }
+    document.getElementById('m-donor-title').textContent = 'Edit Donor';
+  } else {
+    document.getElementById('m-donor-title').textContent = 'Add Donor';
+  }
+  document.getElementById('m-donor').classList.add('open');
+}
+
+function closeDonorModal() {
+  document.getElementById('m-donor').classList.remove('open');
+  S.editDonorId = null;
+}
+
+async function saveDonor() {
+  const errEl = document.getElementById('m-donor-err');
+  const btn   = document.getElementById('d-save');
+  const payload = {
+    name:      document.getElementById('d-name').value.trim(),
+    bloodType: document.getElementById('d-blood').value,
+    phone:     document.getElementById('d-phone').value.trim(),
+    email:     document.getElementById('d-email').value.trim(),
+  };
+  if (!payload.name)  return showErr(errEl, 'Name is required.');
+  if (!payload.phone) return showErr(errEl, 'Phone number is required.');
+
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Saving…';
+  errEl.style.display = 'none';
+
+  try {
+    if (DEMO_MODE) {
+      if (S.editDonorId) {
+        const i = demo.donors.findIndex(d => d.id === S.editDonorId);
+        if (i !== -1) Object.assign(demo.donors[i], payload);
+      } else {
+        const nid = Math.max(0, ...demo.donors.map(d=>d.id)) + 1;
+        demo.donors.push({ id:nid, ...payload, createdAt: todayStr() });
+      }
+    } else {
+      if (S.editDonorId) await api('PUT',  `/donors/${S.editDonorId}`, payload);
+      else               await api('POST', '/donors', payload);
+    }
+    closeDonorModal();
+    await loadDonors();
+  } catch(e) { showErr(errEl, e.message || 'Could not save donor.'); }
+  finally { btn.disabled = false; btn.innerHTML = 'Save Donor'; }
+}
+
+async function deleteDonor(id, name) {
+  if (!confirm(`Delete donor "${name}"? This cannot be undone.`)) return;
+  try {
+    if (DEMO_MODE) demo.donors = demo.donors.filter(d => d.id !== id);
+    else await api('DELETE', `/donors/${id}`);
+    await loadDonors();
+  } catch(e) { alert('Could not delete: ' + e.message); }
+}
+
+// ================================================================
+//  DONATIONS
+// ================================================================
+async function loadDonations() {
+  const tb = document.getElementById('donations-tbody');
+  tb.innerHTML = '<tr><td colspan="4" class="t-empty">Loading…</td></tr>';
+  try {
+    S.donations = await getDonations();
+    if (!S.donations.length) {
+      tb.innerHTML = '<tr><td colspan="4" class="t-empty">No donations yet.</td></tr>'; return;
+    }
+    tb.innerHTML = S.donations.map(d => `
+      <tr>
+        <td class="t-name">${d.donor?.name||'—'}</td>
+        <td><span class="btag">${BL[d.bloodType]||d.bloodType}</span></td>
+        <td>${d.quantity} unit${d.quantity!==1?'s':''}</td>
+        <td style="font-size:12px;color:var(--ink-4)">${d.donationDate}</td>
+      </tr>`).join('');
+  } catch(e) { tb.innerHTML = `<tr><td colspan="4" class="t-empty">Error: ${e.message}</td></tr>`; }
+}
+
+async function openDonationModal() {
+  document.getElementById('m-donation-err').style.display = 'none';
+  document.getElementById('dn-qty').value  = '1';
+  document.getElementById('dn-date').value = todayStr();
+
+  // Populate donor dropdown
+  const sel = document.getElementById('dn-donor');
+  sel.innerHTML = '<option value="">— Select a donor —</option>';
+  if (!S.donors.length) S.donors = await getDonors();
+  S.donors.forEach(d => {
+    const o = document.createElement('option');
+    o.value = d.id; o.textContent = `${d.name} (${BL[d.bloodType]||d.bloodType})`; o.dataset.bt = d.bloodType;
+    sel.appendChild(o);
+  });
+  document.getElementById('m-donation').classList.add('open');
+}
+
+function autofillBlood() {
+  const sel = document.getElementById('dn-donor');
+  const opt = sel.options[sel.selectedIndex];
+  if (opt.dataset.bt) document.getElementById('dn-blood').value = opt.dataset.bt;
+}
+
+function closeDonationModal() { document.getElementById('m-donation').classList.remove('open'); }
+
+async function saveDonation() {
+  const errEl = document.getElementById('m-donation-err');
+  const btn   = document.getElementById('dn-save');
+  const donorId = document.getElementById('dn-donor').value;
+  const payload = {
+    donorId:      Number(donorId),
+    bloodType:    document.getElementById('dn-blood').value,
+    quantity:     Number(document.getElementById('dn-qty').value),
+    donationDate: document.getElementById('dn-date').value,
+  };
+  if (!donorId)         return showErr(errEl, 'Please select a donor.');
+  if (payload.quantity < 1) return showErr(errEl, 'Quantity must be at least 1.');
+
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Saving…';
+  errEl.style.display = 'none';
+
+  try {
+    if (DEMO_MODE) {
+      const donor = demo.donors.find(d => d.id === payload.donorId);
+      const nid = Math.max(0, ...demo.donations.map(d=>d.id)) + 1;
+      demo.donations.push({ id:nid, donor:{name:donor?.name}, ...payload });
+      const inv = demo.inventory.find(i => i.bloodType === payload.bloodType);
+      if (inv) { inv.donated += payload.quantity; inv.available += payload.quantity; }
+    } else { await api('POST', '/donations', payload); }
+    closeDonationModal();
+    await loadDonations();
+  } catch(e) { showErr(errEl, e.message || 'Could not log donation.'); }
+  finally { btn.disabled = false; btn.innerHTML = 'Log Donation'; }
+}
+
+// ================================================================
+//  BLOOD USAGE
+// ================================================================
+async function loadUsages() {
+  const tb = document.getElementById('usage-tbody');
+  tb.innerHTML = '<tr><td colspan="4" class="t-empty">Loading…</td></tr>';
+  try {
+    S.usages = await getUsages();
+    if (!S.usages.length) {
+      tb.innerHTML = '<tr><td colspan="4" class="t-empty">No usage records yet.</td></tr>'; return;
+    }
+    tb.innerHTML = S.usages.map(u => `
+      <tr>
+        <td><span class="btag">${BL[u.bloodType]||u.bloodType}</span></td>
+        <td>${u.quantity} unit${u.quantity!==1?'s':''}</td>
+        <td style="font-size:12px;color:var(--ink-4)">${u.usedDate}</td>
+        <td style="color:var(--ink-4)">${u.note||'—'}</td>
+      </tr>`).join('');
+  } catch(e) { tb.innerHTML = `<tr><td colspan="4" class="t-empty">Error: ${e.message}</td></tr>`; }
+}
+
+async function openUsageModal() {
+  document.getElementById('m-usage-err').style.display = 'none';
+  document.getElementById('u-qty').value  = '1';
+  document.getElementById('u-date').value = todayStr();
+  document.getElementById('u-note').value = '';
+  if (!S.inventory.length) S.inventory = await getInventory();
+  showStock();
+  document.getElementById('m-usage').classList.add('open');
+}
+
+function showStock() {
+  const bt   = document.getElementById('u-blood').value;
+  const inv  = S.inventory.find(i => i.bloodType === bt);
+  const hint = document.getElementById('u-stock-hint');
+  if (inv) {
+    hint.textContent  = `Available: ${inv.available} unit${inv.available!==1?'s':''}`;
+    hint.style.color  = inv.available === 0 ? 'var(--crimson)' : 'var(--ink-4)';
+  } else { hint.textContent = 'Stock data unavailable'; }
+}
+
+function closeUsageModal() { document.getElementById('m-usage').classList.remove('open'); }
+
+async function saveUsage() {
+  const errEl = document.getElementById('m-usage-err');
+  const btn   = document.getElementById('u-save');
+  const payload = {
+    bloodType: document.getElementById('u-blood').value,
+    quantity:  Number(document.getElementById('u-qty').value),
+    usedDate:  document.getElementById('u-date').value,
+    note:      document.getElementById('u-note').value.trim(),
+  };
+  if (payload.quantity < 1) return showErr(errEl, 'Quantity must be at least 1.');
+
+  const inv = S.inventory.find(i => i.bloodType === payload.bloodType);
+  if (inv && payload.quantity > inv.available)
+    return showErr(errEl, `Only ${inv.available} unit(s) of ${BL[payload.bloodType]} available.`);
+
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Recording…';
+  errEl.style.display = 'none';
+
+  try {
+    if (DEMO_MODE) {
+      const nid = Math.max(0, ...demo.usages.map(u=>u.id)) + 1;
+      demo.usages.push({ id:nid, ...payload });
+      if (inv) { inv.used += payload.quantity; inv.available -= payload.quantity; }
+    } else { await api('POST', '/usages', payload); }
+
+    closeUsageModal();
+    await loadUsages();
+    S.inventory = await getInventory();
+
+    const ok = document.getElementById('usage-ok');
+    ok.textContent = `✓ Recorded ${payload.quantity} unit(s) of ${BL[payload.bloodType]}. Inventory updated.`;
+    ok.style.display = 'flex';
+    setTimeout(() => ok.style.display = 'none', 6000);
+  } catch(e) { showErr(errEl, e.message || 'Could not record usage.'); }
+  finally { btn.disabled = false; btn.innerHTML = 'Record Usage'; }
+}
+
+// ================================================================
+//  UTILS
+// ================================================================
+function showErr(el, msg) { el.textContent = msg; el.style.display = 'flex'; }
+function todayStr() { return new Date().toISOString().slice(0,10); }
+
+// Close any modal when clicking the dark overlay
+document.querySelectorAll('.overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+</script>
+</body>
+</html>
