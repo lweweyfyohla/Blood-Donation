@@ -1,5 +1,6 @@
 package com.bloodbank.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -21,6 +22,7 @@ public class BloodDonation {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "donor_id", nullable = false)
+    @JsonIgnoreProperties({"donations"})
     private Donor donor;
 
     @Enumerated(EnumType.STRING)

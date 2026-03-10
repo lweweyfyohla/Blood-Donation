@@ -985,8 +985,11 @@ async function api(method, path, body = null) {
   });
   const data = await res.json().catch(() => null);
   if (res.status === 401) {
-    // Only auto-logout if user was already logged in; otherwise throw for login form to catch
-    if (localStorage.getItem('token')) { doLogout(); return null; }
+    // If user was already logged in, token is stale — logout and throw
+    if (localStorage.getItem('token')) {
+      doLogout();
+      throw new Error('Session expired. Please log in again.');
+    }
     throw new Error(data?.message || 'Invalid email or password.');
   }
   if (!res.ok) throw new Error(data?.message || `Error ${res.status}`);
@@ -994,10 +997,10 @@ async function api(method, path, body = null) {
 }
 
 // Demo fetch wrappers
-async function getDonors()    { return DEMO_MODE ? [...demo.donors]    : (await api('GET','/donors')).content ?? await api('GET','/donors'); }
-async function getDonations() { return DEMO_MODE ? [...demo.donations]  : await api('GET','/donations'); }
-async function getUsages()    { return DEMO_MODE ? [...demo.usages]     : await api('GET','/usages'); }
-async function getInventory() { return DEMO_MODE ? [...demo.inventory]  : await api('GET','/usages/inventory'); }
+async function getDonors()    { if (DEMO_MODE) return [...demo.donors];    const r = await api('GET','/donors'); return (r && r.content) ?? r ?? []; }
+async function getDonations() { if (DEMO_MODE) return [...demo.donations]; return await api('GET','/donations') ?? []; }
+async function getUsages()    { if (DEMO_MODE) return [...demo.usages];    return await api('GET','/usages') ?? []; }
+async function getInventory() { if (DEMO_MODE) return [...demo.inventory]; return await api('GET','/usages/inventory') ?? []; }
 async function getDashboard() {
   if (DEMO_MODE) return {
     totalDonors:    demo.donors.length,
@@ -1148,7 +1151,7 @@ async function loadDonors() {
 
 function renderDonors(list) {
   const tb = document.getElementById('donors-tbody');
-  if (!list.length) {
+  if (!list || !list.length) {
     tb.innerHTML = '<tr><td colspan="6" class="t-empty">No donors yet. Click "+ Add Donor" to register one.</td></tr>';
     return;
   }
@@ -1170,7 +1173,7 @@ function renderDonors(list) {
 
 function filterDonors() {
   const q = document.getElementById('donor-search').value.toLowerCase();
-  renderDonors(S.donors.filter(d =>
+  renderDonors((S.donors||[]).filter(d =>
     d.name.toLowerCase().includes(q) ||
     d.phone.includes(q) ||
     (d.email||'').toLowerCase().includes(q)
@@ -1277,7 +1280,7 @@ async function openDonationModal() {
   // Populate donor dropdown
   const sel = document.getElementById('dn-donor');
   sel.innerHTML = '<option value="">— Select a donor —</option>';
-  if (!S.donors.length) S.donors = await getDonors();
+  if (!S.donors || !S.donors.length) S.donors = await getDonors();
   S.donors.forEach(d => {
     const o = document.createElement('option');
     o.value = d.id; o.textContent = `${d.name} (${BL[d.bloodType]||d.bloodType})`; o.dataset.bt = d.bloodType;
@@ -1350,7 +1353,7 @@ async function openUsageModal() {
   document.getElementById('u-qty').value  = '1';
   document.getElementById('u-date').value = todayStr();
   document.getElementById('u-note').value = '';
-  if (!S.inventory.length) S.inventory = await getInventory();
+  if (!S.inventory || !S.inventory.length) S.inventory = await getInventory();
   showStock();
   document.getElementById('m-usage').classList.add('open');
 }
@@ -1415,5 +1418,6 @@ document.querySelectorAll('.overlay').forEach(o => {
   o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
 });
 </script>
+<script src="http://localhost:35729/livereload.js"></script>
 </body>
 </html>
