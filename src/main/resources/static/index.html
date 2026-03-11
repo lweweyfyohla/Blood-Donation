@@ -225,7 +225,6 @@
             }
         }
 
-        /* FORM COMPONENTS (shared) */
         .fg {
             margin-bottom: 18px;
         }
@@ -1194,7 +1193,7 @@
                 <div class="ph">
                     <div>
                         <div class="ph-title">Blood Usage</div>
-                        <div class="ph-sub">Records blood given to patients — deducts from inventory</div>
+                        <div class="ph-sub">Records blood given to patients, this deducts from inventory</div>
                     </div>
                     <button class="btn btn-primary" onclick="openUsageModal()">+ Record Usage</button>
                 </div>
@@ -1259,7 +1258,6 @@
     <div class="modal">
         <button class="modal-x" onclick="closeDonationModal()">✕</button>
         <div class="modal-ttl">Log Donation</div>
-        <div class="alert alert-info">🩸 This will <strong>add units</strong> to the blood inventory.</div>
         <div id="m-donation-err" class="alert alert-err" style="display:none"></div>
         <div class="fg"><label>Donor <span class="req">*</span></label>
             <select id="dn-donor" onchange="autofillBlood()">
@@ -1296,7 +1294,6 @@
     <div class="modal">
         <button class="modal-x" onclick="closeUsageModal()">✕</button>
         <div class="modal-ttl">Record Blood Usage</div>
-        <div class="alert alert-warn">💉 This will <strong>subtract units</strong> from inventory.</div>
         <div id="m-usage-err" class="alert alert-err" style="display:none"></div>
         <div class="fg"><label>Blood Type <span class="req">*</span></label>
             <select id="u-blood" onchange="showStock()">
