@@ -1,6 +1,6 @@
 # Blood Donation Management System
 
-A full-stack web application for managing blood donations, donor records, blood inventory, and usage tracking. Built with Spring Boot and a single-page application frontend, this system has including blood banks to efficiently register donors, record donations, monitor available blood stock, and log blood usage.
+A full-stack web application for managing blood donations, donor records, blood inventory, and usage tracking. This project built with Spring Boot and a single page application frontend, so this system has including blood banks to register donors, record donations, monitor available blood stock, and log blood usage.
 
 ---
 
@@ -8,15 +8,16 @@ A full-stack web application for managing blood donations, donor records, blood 
 
 1. [About / Overview](#about--overview)
 2. [Technologies Used](#technologies-used)
-3. [Project Structure](#project-structure)
-4. [Installation and Setup](#installation-and-setup)
-5. [Usage](#usage)
-6. [Database Schema](#database-schema)
-7. [API Endpoints](#api-endpoints)
-8. [Deployment](#deployment)
-9. [Future Improvements](#future-improvements)
-10. [AI Acknowledgment](#ai-acknowledgment)
-11. [License](#license)
+3. [Link to Railway](#Link-to-Railway)
+4. [Project Structure](#project-structure)
+5. [Installation and Setup](#installation-and-setup)
+6. [Usage](#usage)
+7. [Database Schema](#database-schema)
+8. [API Endpoints](#api-endpoints)
+9. [Deployment](#deployment)
+10. [Future Improvements](#future-improvements)
+11. [AI Acknowledgment](#ai-acknowledgment)
+12. [License](#license)
 
 ---
 
@@ -24,6 +25,7 @@ A full-stack web application for managing blood donations, donor records, blood 
 
 The Blood Donation Management System is designed to help blood banks and healthcare organizations manage their day-to-day operations. The application provides a centralized platform for:
 
+- **Sing Up** -- Sing up with email and password.
 - **Donor Management** -- Register, update, search, and remove donor records.
 - **Blood Donation Tracking** -- Record individual donations linked to donors with blood type and quantity.
 - **Inventory Monitoring** -- View real-time blood inventory calculated as the difference between total donations and total usage per blood type.
