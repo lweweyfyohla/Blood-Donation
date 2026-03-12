@@ -1,6 +1,6 @@
 # Blood Donation Management System
 
-A full-stack web application for managing blood donations, donor records, blood inventory, and usage tracking. This project built with Spring Boot and a single page application frontend, so this system has including blood banks to register donors, record donations, monitor available blood stock, and log blood usage.
+A full-stack web application for managing blood donations, donor records, blood inventory, usage tracking, and login device monitoring. This project is built with Spring Boot and a single page application frontend. The system allows blood banks to register donors, record donations, monitor available blood stock, log blood usage, and track which devices are used to access the system.
 
 ---
 
@@ -25,20 +25,21 @@ A full-stack web application for managing blood donations, donor records, blood 
 
 The Blood Donation Management System is designed to help blood banks and healthcare organizations manage their day-to-day operations. The application provides a centralized platform for:
 
-- **Sing Up** -- Sing up with email and password.
+- **Sign Up** -- Sign up with email and password.
 - **Donor Management** -- Register, update, search, and remove donor records.
 - **Blood Donation Tracking** -- Record individual donations linked to donors with blood type and quantity.
 - **Inventory Monitoring** -- View real-time blood inventory calculated as the difference between total donations and total usage per blood type.
 - **Blood Usage Logging** -- Record blood usage with stock validation to prevent over-dispensing.
 - **Dashboard** -- View summary statistics including total donors, total donations, total blood used, and current inventory levels.
 - **Authentication** -- Secure access using JWT-based authentication. A single hard-coded admin account is created on startup.
+- **Device Info Tracking** -- Automatically captures device information (IP address, browser, operating system, device type) each time a user logs in. The backend extracts this data from the HTTP request headers during login and stores it in the MySQL database on Railway. You can view all recorded device entries directly in the Railway MySQL server.
 
 The system supports eight blood types: A+, A-, B+, B-, AB+, AB-, O+, and O-.
 
 ### Current Limitations
 
-- **No role-based access control.** The User entity defines ADMIN and STAFF roles, but no authorization rules are enforced. All authenticated users have identical access to every endpoint and feature. Role-based access control is planned for a future release.
-- **Hard-coded admin account.** The only way to log in is with the admin credentials that are created automatically on application startup (`admin@bloodbank.com` / `admin123`). There is no user management interface or self-registration.
+- **No role based access control.** The User entity defines ADMIN and STAFF roles, but no authorization rules are enforced. All authenticated users have identical access to every endpoint and feature. Role-based access control is planned for a future release.
+- **Hard coded admin account.** The only way to log in is with the admin credentials that are created automatically on application startup (`admin@bloodbank.com` / `admin123`). There is no user management interface or self-registration.
 
 ---
 
@@ -81,6 +82,7 @@ Blood-Donation-System/
         │   │   ├── BloodDonationController.java# Blood donation endpoints
         │   │   ├── BloodUsageController.java   # Blood usage and inventory endpoints
         │   │   ├── DashboardController.java    # Dashboard statistics endpoint
+        │   │   ├── DeviceInfoController.java   # Login device tracking endpoints
         │   │   └── DonorController.java        # Donor management endpoints
         │   ├── dto/
         │   │   ├── request/                    # Request DTOs with validation
@@ -88,6 +90,7 @@ Blood-Donation-System/
         │   ├── entity/
         │   │   ├── BloodDonation.java          # Blood donation entity
         │   │   ├── BloodUsage.java             # Blood usage entity
+        │   │   ├── DeviceInfo.java             # Login device tracking entity
         │   │   ├── Donor.java                  # Donor entity with BloodType enum
         │   │   └── User.java                   # User entity implementing UserDetails
         │   ├── exception/
@@ -190,7 +193,7 @@ These credentials are defined directly in the source code. It is strongly recomm
 1. Open a web browser and navigate to `http://localhost:8080`.
 2. Log in using the hard-coded admin credentials (see [Installation and Setup](#installation-and-setup) for details).
 3. Use the navigation menu to access the following sections:
-   - **Sing In** -- Sing in with email and password.
+   - **Sign In** -- Sign in with email and password.
    - **Dashboard** -- View summary statistics and current inventory levels.
    - **Donors** -- Add, edit, search, and delete donor records.
    - **Donations** -- Record new blood donations linked to registered donors.
@@ -202,7 +205,20 @@ These credentials are defined directly in the source code. It is strongly recomm
 
 ## Database Schema
 
-The system uses four tables. The inventory is not stored in a dedicated table; instead, it is calculated at runtime as the difference between total donations and total usage per blood type.
+The system uses five tables. The inventory is not stored in a dedicated table; instead, it is calculated at runtime as the difference between total donations and total usage per blood type. The `device_info` table is automatically created by Hibernate (via `spring.jpa.hibernate.ddl-auto=update`) and is not listed in `schema.sql`.
+
+### MySQL on Railway
+
+The MySQL database is hosted on Railway. When you add a MySQL service to your Railway project, Railway automatically provisions a MySQL instance and sets the connection environment variables (`MYSQLHOST`, `MYSQLPORT`, `MYSQLDATABASE`, `MYSQLUSER`, `MYSQLPASSWORD`). The Spring Boot application uses these variables to connect.
+
+**How to check tables in Railway:**
+
+1. Open your Railway project dashboard at [railway.app](https://railway.app).
+2. Click on the **MySQL** service.
+3. Go to the **Data** tab to browse tables and view rows directly in the browser.
+4. You can also use the **Connect** tab to copy the connection string and connect with a local MySQL client or GUI tool (e.g., MySQL Workbench, DBeaver, or TablePlus).
+
+All five tables (`users`, `donors`, `blood_donations`, `blood_usages`, `device_info`) are visible in the Railway MySQL Data tab, where you can inspect rows and verify the data.
 
 ### Tables
 
@@ -250,6 +266,21 @@ The system uses four tables. The inventory is not stored in a dedicated table; i
 | note        | VARCHAR(500)  |                                    |
 | created_at  | TIMESTAMP     | NOT NULL, DEFAULT CURRENT_TIMESTAMP|
 
+#### device_info
+
+This table is created automatically by Hibernate and is **not** included in `schema.sql`. Every time a user logs in, the backend reads the `User-Agent` header from the HTTP request and parses the device type, browser, and operating system. It also captures the client IP address, including support for `X-Forwarded-For` behind proxies. The resulting record is saved into this table. You can view these entries in the Railway MySQL Data tab.
+
+| Column           | Type          | Constraints                        |
+|-----------------|---------------|------------------------------------|
+| id              | BIGINT        | PRIMARY KEY, AUTO_INCREMENT        |
+| username        | VARCHAR(255)  | NOT NULL                           |
+| ip_address      | VARCHAR(45)   |                                    |
+| device_type     | VARCHAR(20)   |                                    |
+| browser         | VARCHAR(50)   |                                    |
+| operating_system| VARCHAR(50)   |                                    |
+| user_agent      | VARCHAR(500)  |                                    |
+| login_time      | DATETIME      | NOT NULL, DEFAULT CURRENT_TIMESTAMP|
+
 ### Relationships
 
 ```
@@ -260,6 +291,8 @@ donors ──< blood_donations
   blood_donations.donor_id references donors.id
 
 blood_usages        (standalone -- tracks blood consumed)
+
+device_info         (standalone -- logs device details on each login)
 
 Inventory = SUM(blood_donations.quantity) - SUM(blood_usages.quantity) per blood_type
 ```
@@ -358,6 +391,15 @@ Note: The `role` field is returned in the response but is not currently used for
 }
 ```
 
+### Device Info
+
+Device information is automatically captured during login (see [Database Schema](#database-schema) for details). Query recorded devices using the endpoints below, or browse them in the Railway MySQL Data tab.
+
+| Method | Endpoint                  | Description                            |
+|--------|---------------------------|----------------------------------------|
+| GET    | `/api/devices`            | List all recorded login devices        |
+| GET    | `/api/devices/{username}` | List login devices for a specific user |
+
 ---
 
 ## Deployment
@@ -372,6 +414,7 @@ The application is configured to work with Railway out of the box. To deploy:
    - `APP_JWT_SECRET` -- A secure random string for JWT signing.
    - `APP_FRONTEND_URL` -- The deployed frontend URL for CORS (or `*` to allow all origins).
 4. Railway will detect the Maven project, build it, and start the application automatically.
+5. To inspect the database, click on the MySQL service in your Railway dashboard, then open the **Data** tab. All tables (`users`, `donors`, `blood_donations`, `blood_usages`, `device_info`) are listed there and you can browse rows, run queries, and verify data including the device info captured on each login.
 
 ### General Deployment
 
