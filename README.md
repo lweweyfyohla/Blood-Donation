@@ -59,7 +59,7 @@ The system supports eight blood types: A+, A-, B+, B-, AB+, AB-, O+, and O-.
 | Deployment      | Railway                                         |
 ---
 
-## Link to Railway
+## Link to the app
 https://blooddonation.up.railway.app/
 
 ## Project Structure
