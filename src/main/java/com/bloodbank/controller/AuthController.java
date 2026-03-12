@@ -3,6 +3,8 @@ package com.bloodbank.controller;
 import com.bloodbank.config.JwtService;
 import com.bloodbank.dto.request.LoginRequest;
 import com.bloodbank.entity.User;
+import com.bloodbank.service.DeviceInfoService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,13 +22,15 @@ public class AuthController {
 
     private final AuthenticationManager authManager;
     private final JwtService jwtService;
+    private final DeviceInfoService deviceInfoService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest req) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest req, HttpServletRequest request) {
         Authentication auth = authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(req.getEmail(), req.getPassword()));
         User user = (User) auth.getPrincipal();
         String token = jwtService.generateToken(user.getUsername());
+        deviceInfoService.recordDevice(user.getUsername(), request);
         return ResponseEntity.ok(Map.of(
                 "token", token,
                 "name",  user.getName(),

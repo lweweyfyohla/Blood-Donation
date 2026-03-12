@@ -9,10 +9,6 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-/**
- * Ensures the default admin user exists on every startup.
- * This is a safety net on top of schema.sql INSERT IGNORE.
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -34,7 +30,7 @@ public class DataInitializer implements ApplicationRunner {
             userRepository.save(admin);
             log.info("Default admin user created: admin@bloodbank.com / admin123");
         } else {
-            // Ensure the password is valid (fix for bad hash from old schema.sql)
+            // for the password is valid
             User admin = existing.get();
             if (!passwordEncoder.matches("admin123", admin.getPassword())) {
                 admin.setPassword(passwordEncoder.encode("admin123"));
